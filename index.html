@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Pokemon Gen 1 Generator</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(180deg,#081a3a,#123a7a);
+color:white;
+}
+
+h1{text-align:center}
+
+button{
+display:block;
+margin:10px auto;
+padding:12px 20px;
+cursor:pointer;
+}
+
+.container{padding:20px}
+
+.grid{
+display:flex;
+justify-content:space-between;
+}
+
+.card{
+width:45%;
+background:rgba(0,0,0,0.35);
+padding:10px;
+border-radius:10px;
+}
+
+.move{
+margin:8px 0;
+padding:10px;
+border-radius:8px;
+}
+.best{border:3px solid yellow}
+</style>
+</head>
+
+<body>
+
+<h1>Pokemon Gen 1 Generator</h1>
+<button onclick="generate()">Generate Challenge</button>
+
+<div class="container">
+<div class="grid">
+<div class="card" id="ai"></div>
+<div class="card" id="player"></div>
+</div>
+<div id="moves"></div>
+</div>
+
+<script>
+
+//////////////////////////////////////////////////////
+// POKEMON DB (ORIGINALE FIXATO)
+//////////////////////////////////////////////////////
+
+const pokemonDB = [
+{ name:"Bulbasaur", type1:"Grass", type2:"Poison" },
+{ name:"Ivysaur", type1:"Grass", type2:"Poison" },
+{ name:"Venusaur", type1:"Grass", type2:"Poison" },
+{ name:"Charmander", type1:"Fire", type2:null },
+{ name:"Charmeleon", type1:"Fire", type2:null },
+{ name:"Charizard", type1:"Fire", type2:"Flying" },
+{ name:"Squirtle", type1:"Water", type2:null },
+{ name:"Wartortle", type1:"Water", type2:null },
+{ name:"Blastoise", type1:"Water", type2:null },
+{ name:"Caterpie", type1:"Bug", type2:null },
+{ name:"Metapod", type1:"Bug", type2:null },
+{ name:"Butterfree", type1:"Bug", type2:"Flying" },
+{ name:"Weedle", type1:"Bug", type2:"Poison" },
+{ name:"Kakuna", type1:"Bug", type2:"Poison" },
+{ name:"Beedrill", type1:"Bug", type2:"Poison" },
+{ name:"Pidgey", type1:"Normal", type2:"Flying" },
+{ name:"Pidgeotto", type1:"Normal", type2:"Flying" },
+{ name:"Pidgeot", type1:"Normal", type2:"Flying" },
+{ name:"Rattata", type1:"Normal", type2:null },
+{ name:"Raticate", type1:"Normal", type2:null },
+{ name:"Spearow", type1:"Normal", type2:"Flying" },
+{ name:"Fearow", type1:"Normal", type2:"Flying" },
+{ name:"Ekans", type1:"Poison", type2:null },
+{ name:"Arbok", type1:"Poison", type2:null },
+{ name:"Pikachu", type1:"Electric", type2:null },
+{ name:"Raichu", type1:"Electric", type2:null },
+{ name:"Sandshrew", type1:"Ground", type2:null },
+{ name:"Sandslash", type1:"Ground", type2:null },
+{ name:"Nidoran♀", type1:"Poison", type2:null },
+{ name:"Nidorina", type1:"Poison", type2:null },
+{ name:"Nidoqueen", type1:"Poison", type2:"Ground" },
+{ name:"Nidoran♂", type1:"Poison", type2:null },
+{ name:"Nidorino", type1:"Poison", type2:null },
+{ name:"Nidoking", type1:"Poison", type2:"Ground" },
+{ name:"Clefairy", type1:"Normal", type2:null },
+{ name:"Clefable", type1:"Normal", type2:null },
+{ name:"Vulpix", type1:"Fire", type2:null },
+{ name:"Ninetales", type1:"Fire", type2:null },
+{ name:"Jigglypuff", type1:"Normal", type2:null },
+{ name:"Wigglytuff", type1:"Normal", type2:null },
+{ name:"Zubat", type1:"Poison", type2:"Flying" },
+{ name:"Golbat", type1:"Poison", type2:"Flying" },
+{ name:"Oddish", type1:"Grass", type2:"Poison" },
+{ name:"Gloom", type1:"Grass", type2:"Poison" },
+{ name:"Vileplume", type1:"Grass", type2:"Poison" },
+{ name:"Paras", type1:"Bug", type2:"Grass" },
+{ name:"Parasect", type1:"Bug", type2:"Grass" },
+{ name:"Venonat", type1:"Bug", type2:"Poison" },
+{ name:"Venomoth", type1:"Bug", type2:"Poison" },
+{ name:"Diglett", type1:"Ground", type2:null },
+{ name:"Dugtrio", type1:"Ground", type2:null },
+{ name:"Meowth", type1:"Normal", type2:null },
+{ name:"Persian", type1:"Normal", type2:null },
+{ name:"Psyduck", type1:"Water", type2:null },
+{ name:"Golduck", type1:"Water", type2:null },
+{ name:"Mankey", type1:"Fighting", type2:null },
+{ name:"Primeape", type1:"Fighting", type2:null },
+{ name:"Growlithe", type1:"Fire", type2:null },
+{ name:"Arcanine", type1:"Fire", type2:null },
+{ name:"Poliwag", type1:"Water", type2:null },
+{ name:"Poliwhirl", type1:"Water", type2:null },
+{ name:"Poliwrath", type1:"Water", type2:"Fighting" },
+{ name:"Abra", type1:"Psychic", type2:null },
+{ name:"Kadabra", type1:"Psychic", type2:null },
+{ name:"Alakazam", type1:"Psychic", type2:null },
+{ name:"Machop", type1:"Fighting", type2:null },
+{ name:"Machoke", type1:"Fighting", type2:null },
+{ name:"Machamp", type1:"Fighting", type2:null },
+{ name:"Bellsprout", type1:"Grass", type2:"Poison" },
+{ name:"Weepinbell", type1:"Grass", type2:"Poison" },
+{ name:"Victreebel", type1:"Grass", type2:"Poison" },
+{ name:"Tentacool", type1:"Water", type2:"Poison" },
+{ name:"Tentacruel", type1:"Water", type2:"Poison" },
+{ name:"Geodude", type1:"Rock", type2:"Ground" },
+{ name:"Graveler", type1:"Rock", type2:"Ground" },
+{ name:"Golem", type1:"Rock", type2:"Ground" },
+{ name:"Ponyta", type1:"Fire", type2:null },
+{ name:"Rapidash", type1:"Fire", type2:null },
+{ name:"Slowpoke", type1:"Water", type2:"Psychic" },
+{ name:"Slowbro", type1:"Water", type2:"Psychic" },
+{ name:"Magnemite", type1:"Electric", type2:null },
+{ name:"Magneton", type1:"Electric", type2:null },
+{ name:"Farfetch'd", type1:"Normal", type2:"Flying" },
+{ name:"Doduo", type1:"Normal", type2:"Flying" },
+{ name:"Dodrio", type1:"Normal", type2:"Flying" },
+{ name:"Seel", type1:"Water", type2:null },
+{ name:"Dewgong", type1:"Water", type2:"Ice" },
+{ name:"Grimer", type1:"Poison", type2:null },
+{ name:"Muk", type1:"Poison", type2:null },
+{ name:"Shellder", type1:"Water", type2:null },
+{ name:"Cloyster", type1:"Water", type2:"Ice" },
+{ name:"Gastly", type1:"Ghost", type2:"Poison" },
+{ name:"Haunter", type1:"Ghost", type2:"Poison" },
+{ name:"Gengar", type1:"Ghost", type2:"Poison" },
+{ name:"Onix", type1:"Rock", type2:"Ground" },
+{ name:"Drowzee", type1:"Psychic", type2:null },
+{ name:"Hypno", type1:"Psychic", type2:null },
+{ name:"Krabby", type1:"Water", type2:null },
+{ name:"Kingler", type1:"Water", type2:null },
+{ name:"Voltorb", type1:"Electric", type2:null },
+{ name:"Electrode", type1:"Electric", type2:null },
+{ name:"Exeggcute", type1:"Grass", type2:"Psychic" },
+{ name:"Exeggutor", type1:"Grass", type2:"Psychic" },
+{ name:"Cubone", type1:"Ground", type2:null },
+{ name:"Marowak", type1:"Ground", type2:null },
+{ name:"Hitmonlee", type1:"Fighting", type2:null },
+{ name:"Hitmonchan", type1:"Fighting", type2:null },
+{ name:"Lickitung", type1:"Normal", type2:null },
+{ name:"Koffing", type1:"Poison", type2:null },
+{ name:"Weezing", type1:"Poison", type2:null },
+{ name:"Rhyhorn", type1:"Ground", type2:"Rock" },
+{ name:"Rhydon", type1:"Ground", type2:"Rock" },
+{ name:"Chansey", type1:"Normal", type2:null },
+{ name:"Tangela", type1:"Grass", type2:null },
+{ name:"Kangaskhan", type1:"Normal", type2:null },
+{ name:"Horsea", type1:"Water", type2:null },
+{ name:"Seadra", type1:"Water", type2:null },
+{ name:"Goldeen", type1:"Water", type2:null },
+{ name:"Seaking", type1:"Water", type2:null },
+{ name:"Staryu", type1:"Water", type2:null },
+{ name:"Starmie", type1:"Water", type2:"Psychic" },
+{ name:"Mr. Mime", type1:"Psychic", type2:null },
+{ name:"Scyther", type1:"Bug", type2:"Flying" },
+{ name:"Jynx", type1:"Ice", type2:"Psychic" },
+{ name:"Electabuzz", type1:"Electric", type2:null },
+{ name:"Magmar", type1:"Fire", type2:null },
+{ name:"Pinsir", type1:"Bug", type2:null },
+{ name:"Tauros", type1:"Normal", type2:null },
+{ name:"Magikarp", type1:"Water", type2:null },
+{ name:"Gyarados", type1:"Water", type2:"Flying" },
+{ name:"Lapras", type1:"Water", type2:"Ice" },
+{ name:"Ditto", type1:"Normal", type2:null },
+{ name:"Eevee", type1:"Normal", type2:null },
+{ name:"Vaporeon", type1:"Water", type2:null },
+{ name:"Jolteon", type1:"Electric", type2:null },
+{ name:"Flareon", type1:"Fire", type2:null },
+{ name:"Porygon", type1:"Normal", type2:null },
+{ name:"Omanyte", type1:"Rock", type2:"Water" },
+{ name:"Omastar", type1:"Rock", type2:"Water" },
+{ name:"Kabuto", type1:"Rock", type2:"Water" },
+{ name:"Kabutops", type1:"Rock", type2:"Water" },
+{ name:"Aerodactyl", type1:"Rock", type2:"Flying" },
+{ name:"Snorlax", type1:"Normal", type2:null },
+{ name:"Articuno", type1:"Ice", type2:"Flying" },
+{ name:"Zapdos", type1:"Electric", type2:"Flying" },
+{ name:"Moltres", type1:"Fire", type2:"Flying" },
+{ name:"Dratini", type1:"Dragon", type2:null },
+{ name:"Dragonair", type1:"Dragon", type2:null },
+{ name:"Dragonite", type1:"Dragon", type2:"Flying" },
+{ name:"Mewtwo", type1:"Psychic", type2:null },
+{ name:"Mew", type1:"Psychic", type2:null }
+];
+
+//////////////////////////////////////////////////////
+// MOSSE FIXATE (NESSUN UNDEFINED)
+//////////////////////////////////////////////////////
+
+const realMoveNames = [
+"Absorb","Acid","Acid Armor","Agility","Amnesia","Aurora Beam","Barrage","Barrier",
+"Bide","Bind","Bite","Blizzard","Body Slam","Bone Club","Bonemerang","Bubble",
+"Bubble Beam","Clamp","Comet Punch","Confuse Ray","Confusion","Constrict","Conversion",
+"Counter","Crabhammer","Cut","Defense Curl","Dig","Disable","Dizzy Punch",
+"Double Kick","Double Slap","Double Team","Double-Edge","Dragon Rage","Dream Eater",
+"Drill Peck","Earthquake","Egg Bomb","Ember","Explosion","Fire Blast","Fire Punch",
+"Fire Spin","Fissure","Flamethrower","Flash","Fly","Focus Energy","Fury Attack",
+"Fury Swipes","Glare","Growl","Growth","Guillotine","Gust","Harden","Haze",
+"Headbutt","High Jump Kick","Horn Attack","Horn Drill","Hydro Pump","Hyper Beam",
+"Hyper Fang","Hypnosis","Ice Beam","Ice Punch","Jump Kick","Karate Chop","Kinesis",
+"Leech Life","Leech Seed","Leer","Lick","Light Screen","Lovely Kiss","Low Kick",
+"Meditate","Mega Drain","Mega Kick","Mega Punch","Metronome","Mimic","Minimize",
+"Mirror Move","Mist","Night Shade","Pay Day","Peck","Petal Dance","Pin Missile",
+"Poison Gas","Poison Powder","Poison Sting","Pound","Psybeam","Psychic","Psywave",
+"Quick Attack","Rage","Razor Leaf","Razor Wind","Recover","Reflect","Rest","Roar",
+"Rock Slide","Rock Throw","Rolling Kick","Sand Attack","Scratch","Screech",
+"Seismic Toss","Self-Destruct","Sharpen","Sing","Skull Bash","Sky Attack","Slam",
+"Slash","Sleep Powder","Sludge","Smog","Smokescreen","Soft-Boiled","Solar Beam",
+"Sonic Boom","Spike Cannon","Splash","Spore","Stomp","Strength","String Shot",
+"Struggle","Stun Spore","Submission","Substitute","Super Fang","Supersonic",
+"Surf","Swift","Swords Dance","Tackle","Tail Whip","Take Down","Teleport","Thrash",
+"Thunder","Thunder Punch","Thunder Shock","Thunder Wave","Thunderbolt","Toxic",
+"Transform","Tri Attack","Twineedle","Vine Whip","Vise Grip","Water Gun",
+"Waterfall","Whirlwind","Wing Attack","Withdraw","Wrap"
+];
+
+const types=["Normal","Fire","Water","Electric","Grass","Ice","Fighting","Poison","Ground","Flying","Psychic","Bug","Rock","Ghost","Dragon"];
+
+const moveNames = Array.from({length:165},(_,i)=>({
+name: realMoveNames[i % realMoveNames.length],
+type:types[Math.floor(Math.random()*types.length)],
+power:Math.floor(Math.random()*130),
+acc:[70,75,80,85,90,95,100][Math.floor(Math.random()*7)],
+pp:[5,10,15,20,25,30,35][Math.floor(Math.random()*7)],
+eff:Math.floor(Math.random()*10)+1
+}));
+
+function shuffle(a){
+let arr=a.slice();
+for(let i=arr.length-1;i>0;i--){
+let j=Math.floor(Math.random()* (i+1));
+[arr[i],arr[j]]=[arr[j],arr[i]];
+}
+return arr;
+}
+
+function eff(m,t){
+if(m==="Fire"&&t==="Grass")return 2;
+if(m==="Water"&&t==="Fire")return 2;
+if(m==="Electric"&&t==="Water")return 2;
+if(m==="Grass"&&t==="Water")return 2;
+return 1;
+}
+
+function calc(move,atk,def){
+let PR=(move.acc===100?10:move.acc/10);
+let PP=(move.pp/40)*10;
+let EF=move.eff;
+let stab=(atk.type1===move.type||atk.type2===move.type)?1.5:1;
+let typeEff=eff(move.type,def.type1);
+let PT=((move.power||0)*stab*typeEff)/15;
+let score=(PR*0.35)+(PT*0.30)+(PP*0.10)+(EF*0.25);
+return {PR,PP,EF,PT,score};
+}
+
+function generate(){
+let ai=pokemonDB[Math.floor(Math.random()*pokemonDB.length)];
+let pl=pokemonDB[Math.floor(Math.random()*pokemonDB.length)];
+
+document.getElementById("ai").innerHTML=
+`<h3>Pokemon AI</h3>${ai.name}<br>${ai.type1}/${ai.type2||""}`;
+
+document.getElementById("player").innerHTML=
+`<h3>Pokemon Player</h3>${pl.name}<br>${pl.type1}/${pl.type2||""}`;
+
+let pool=shuffle(moveNames).slice(0,4);
+
+let results=pool.map(m=>({m,calc:calc(m,ai,pl)}))
+.sort((a,b)=>b.calc.score-a.calc.score);
+
+let html="<h2>Mosse IA</h2>";
+
+results.forEach((r,i)=>{
+let c=r.calc;
+let color=i===0?"#0b6623":i===3?"#5a0f0f":"#2d4f2d";
+
+html+=`
+<div class="move ${i===0?"best":""}" style="background:${color}">
+<b>${r.m.name}</b> ${i===0?"🔥 BEST MOVE":""}<br>
+PR:${c.PR.toFixed(1)} |
+PT:${c.PT.toFixed(1)} |
+PP:${c.PP.toFixed(1)} |
+EF:${c.EF}<br>
+Score:${c.score.toFixed(2)}
+</div>`;
+});
+
+document.getElementById("moves").innerHTML=html;
+}
+
+</script>
+
+</body>
+</html>
